@@ -55,20 +55,31 @@ function ExPanel_updateFloatingPosition() {
     const playerToolbar = document.getElementById("js-player-toolbar");
     const vtoolbarMenu = document.getElementById("ex-vtoolbar-menu");
     console.log("[ExPanel] updateFloatingPosition | playerToolbar:", !!playerToolbar, "| vtoolbarMenu:", !!vtoolbarMenu);
-    if (!playerToolbar) {
+
+    const gap = 8;
+    panel.style.position = "fixed";
+    panel.style.top = "auto";
+
+    // Vertical: use vtoolbarMenu (actual bottom control bar) as reference,
+    // fall back to playerToolbar, then hardcoded value
+    if (vtoolbarMenu) {
+        const menuRect = vtoolbarMenu.getBoundingClientRect();
+        console.log("[ExPanel] updateFloatingPosition | menuRect.top:", menuRect.top);
+        panel.style.bottom = `${window.innerHeight - menuRect.top + gap}px`;
+    } else if (playerToolbar) {
+        const toolbarRect = playerToolbar.getBoundingClientRect();
+        console.log("[ExPanel] updateFloatingPosition | toolbarRect.top:", toolbarRect.top);
+        panel.style.bottom = `${window.innerHeight - toolbarRect.top + gap}px`;
+    } else {
         console.log("[ExPanel] updateFloatingPosition | FALLBACK: bottom=72px right=12px");
         panel.style.bottom = "72px";
         panel.style.right = "12px";
         panel.style.left = "";
         return;
     }
-    const toolbarRect = playerToolbar.getBoundingClientRect();
-    console.log("[ExPanel] updateFloatingPosition | toolbarRect.top:", toolbarRect.top, "| innerHeight:", window.innerHeight, "| panel.offsetWidth:", panel.offsetWidth);
-    const gap = 8;
-    panel.style.position = "fixed";
-    panel.style.bottom = `${window.innerHeight - toolbarRect.top + gap}px`;
-    panel.style.top = "auto";
-    console.log("[ExPanel] updateFloatingPosition | set bottom:", panel.style.bottom);
+    console.log("[ExPanel] updateFloatingPosition | innerHeight:", window.innerHeight, "| set bottom:", panel.style.bottom);
+
+    // Horizontal: center on vtoolbarMenu if available, otherwise on toolbar
     if (vtoolbarMenu) {
         const menuRect = vtoolbarMenu.getBoundingClientRect();
         const panelWidth = panel.offsetWidth || panel.scrollWidth || 320;
@@ -78,6 +89,7 @@ function ExPanel_updateFloatingPosition() {
         panel.style.right = "auto";
         console.log("[ExPanel] updateFloatingPosition | vtoolbarMenu mode | left:", left, "| panelWidth:", panelWidth);
     } else {
+        const toolbarRect = playerToolbar.getBoundingClientRect();
         const panelWidth = panel.offsetWidth || panel.scrollWidth || 320;
         let left = toolbarRect.left + toolbarRect.width / 2 - panelWidth / 2;
         left = Math.max(8, Math.min(left, window.innerWidth - panelWidth - 8));
