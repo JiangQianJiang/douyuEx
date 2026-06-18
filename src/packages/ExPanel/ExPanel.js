@@ -28,15 +28,13 @@ function ExPanel_getGiftBarAnchor() {
 
 function ExPanel_isGiftBarHidden() {
     const row = document.getElementsByClassName("PlayerToolbar-ContentRow")[0];
-    const hidden = !!(row && row.style.visibility === "hidden");
-    console.log("[ExPanel] isGiftBarHidden:", hidden, "| row exists:", !!row, "| style.visibility:", row && row.style.visibility);
-    return hidden;
+    return !!(row && row.style.visibility === "hidden");
 }
 
 function ExPanel_getFloatingHost() {
-    // Use document.body to avoid CSS transform on player container
-    // breaking position:fixed (transform creates a new containing block)
-    return document.body;
+    return document.getElementById("js-player-dialog")
+        || document.getElementsByClassName("room-Player-Box")[0]
+        || document.body;
 }
 
 function ExPanel_saveAnchor(panel) {
@@ -48,65 +46,46 @@ function ExPanel_saveAnchor(panel) {
 
 function ExPanel_updateFloatingPosition() {
     const panel = document.querySelector(".ex-panel.ex-panel--floating");
-    console.log("[ExPanel] updateFloatingPosition | panel found:", !!panel);
     if (!panel) {
         return;
     }
     const playerToolbar = document.getElementById("js-player-toolbar");
     const vtoolbarMenu = document.getElementById("ex-vtoolbar-menu");
-    console.log("[ExPanel] updateFloatingPosition | playerToolbar:", !!playerToolbar, "| vtoolbarMenu:", !!vtoolbarMenu);
-
     const gap = 8;
     panel.style.position = "fixed";
     panel.style.top = "auto";
 
-    // Vertical: use vtoolbarMenu (actual bottom control bar) as reference,
+    // Vertical: prefer vtoolbarMenu (actual bottom control bar),
     // fall back to playerToolbar, then hardcoded value
     if (vtoolbarMenu) {
         const menuRect = vtoolbarMenu.getBoundingClientRect();
-        console.log("[ExPanel] updateFloatingPosition | menuRect.top:", menuRect.top);
         panel.style.bottom = `${window.innerHeight - menuRect.top + gap}px`;
-    } else if (playerToolbar) {
-        const toolbarRect = playerToolbar.getBoundingClientRect();
-        console.log("[ExPanel] updateFloatingPosition | toolbarRect.top:", toolbarRect.top);
-        panel.style.bottom = `${window.innerHeight - toolbarRect.top + gap}px`;
-    } else {
-        console.log("[ExPanel] updateFloatingPosition | FALLBACK: bottom=72px right=12px");
-        panel.style.bottom = "72px";
-        panel.style.right = "12px";
-        panel.style.left = "";
-        return;
-    }
-    console.log("[ExPanel] updateFloatingPosition | innerHeight:", window.innerHeight, "| set bottom:", panel.style.bottom);
-
-    // Horizontal: center on vtoolbarMenu if available, otherwise on toolbar
-    if (vtoolbarMenu) {
-        const menuRect = vtoolbarMenu.getBoundingClientRect();
         const panelWidth = panel.offsetWidth || panel.scrollWidth || 320;
         let left = menuRect.left + menuRect.width / 2 - panelWidth / 2;
         left = Math.max(8, Math.min(left, window.innerWidth - panelWidth - 8));
         panel.style.left = `${left}px`;
         panel.style.right = "auto";
-        console.log("[ExPanel] updateFloatingPosition | vtoolbarMenu mode | left:", left, "| panelWidth:", panelWidth);
-    } else {
+    } else if (playerToolbar) {
         const toolbarRect = playerToolbar.getBoundingClientRect();
+        panel.style.bottom = `${window.innerHeight - toolbarRect.top + gap}px`;
         const panelWidth = panel.offsetWidth || panel.scrollWidth || 320;
         let left = toolbarRect.left + toolbarRect.width / 2 - panelWidth / 2;
         left = Math.max(8, Math.min(left, window.innerWidth - panelWidth - 8));
         panel.style.left = `${left}px`;
         panel.style.right = "auto";
-        console.log("[ExPanel] updateFloatingPosition | toolbar mode | left:", left, "| panelWidth:", panelWidth);
+    } else {
+        panel.style.bottom = "72px";
+        panel.style.right = "12px";
+        panel.style.left = "";
     }
 }
 
 function ExPanel_attachToFloatingHost() {
     const panel = document.querySelector(".ex-panel");
-    console.log("[ExPanel] attachToFloatingHost | panel:", !!panel, "| already floating:", panel && panel.classList.contains("ex-panel--floating"), "| display:", panel && panel.style.display);
     if (!panel || panel.classList.contains("ex-panel--floating")) {
         ExPanel_updateFloatingPosition();
         return;
     }
-    console.log("[ExPanel] attachToFloatingHost | moving panel to floating host");
     ExPanel_saveAnchor(panel);
     ExPanel_getFloatingHost().appendChild(panel);
     panel.classList.add("ex-panel--floating");
@@ -125,13 +104,6 @@ function ExPanel_restoreToGiftBar() {
         anchor.insertBefore(panel, anchor.childNodes[0]);
     }
     panel.classList.remove("ex-panel--floating");
-    // Reset floating inline styles, restore gift-bar positioning
-    panel.style.position = "";
-    panel.style.top = "";
-    panel.style.left = "";
-    panel.style.right = "";
-    const domPlayerToolbar = document.querySelector(".PlayerToolbar");
-    panel.style.bottom = domPlayerToolbar ? domPlayerToolbar.offsetHeight + "px" : "76px";
 }
 
 function ExPanel_syncHost() {
@@ -197,9 +169,7 @@ function showExPanel() {
     if (!a) {
         return;
     }
-    console.log("[ExPanel] showExPanel | current display:", a.style.display, "| is floating:", a.classList.contains("ex-panel--floating"), "| parent:", a.parentNode && (a.parentNode.id || a.parentNode.className));
     ExPanel_syncHost();
-    console.log("[ExPanel] showExPanel after syncHost | display:", a.style.display, "| is floating:", a.classList.contains("ex-panel--floating"), "| parent:", a.parentNode && (a.parentNode.id || a.parentNode.className));
 	if (a.style.display !== 'block') {
         a.style.display = 'block';
         clearTimeout(exPanelTimer);

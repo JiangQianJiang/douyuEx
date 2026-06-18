@@ -70,13 +70,13 @@ function initPkg_Refresh_Video_Func() {
             chatPanel_isHidden = true;
         }
         const dom_player_toolbar = document.getElementById("js-player-toolbar");
-        dom_player_toolbar.style.zIndex = video_fullPage ? "20" : "30";
+        dom_player_toolbar.style = video_fullPage? "z-index:20" : "z-index:30";
         const dom_casebar = document.getElementsByClassName("case__f4yex")[0];
-        if (dom_casebar) {
-            dom_casebar.style.bottom = (video_fullScreen || (video_fullPage && chatPanel_isHidden)) && refresh_Video_getStatus() ? "-84px" : "0";
+        if(dom_casebar){
+            dom_casebar.style = (video_fullScreen || (video_fullPage && chatPanel_isHidden)) && refresh_Video_getStatus() ? "bottom: -84px;" : "bottom: 0;";
         }
         const isBeta = !!document.getElementsByClassName("live-next-body")[0];
-        if (isBeta) dom_player_toolbar.parentElement.style.zIndex = "20";
+        if (isBeta) dom_player_toolbar.parentElement.style = "z-index:20";
     }
 
     let dom = getValidDom([".layout-Player-video", ".stream__T55I3"]);
@@ -159,8 +159,7 @@ function initPkg_Refresh_Video_Func() {
             if (typeof ExPanel_onGiftBarHide === "function") {
                 ExPanel_onGiftBarHide();
             }
-            dom_video.style.bottom = "0";
-            dom_video.style.zIndex = "25";
+            dom_video.style = "bottom:0;z-index:25";
             dom_refresh.innerText = "✓ 隐藏礼物栏";
             if (dom_refresh3) dom_refresh3.title = "点击显示礼物栏";
             updateRefreshSwitchUI(true);
@@ -240,18 +239,17 @@ function initPkg_Refresh_Video_Set() {
             let dom_refresh3 = document.getElementById("refresh-video3");
             let dom_player_toolbar = document.getElementById("js-player-toolbar");
             dom_toolbar.style.visibility = "hidden";
-            dom_video.style.bottom = "0";
-            dom_video.style.zIndex = "25";
-            dom_player_toolbar.style.zIndex = "30";
+            dom_video.style = "bottom:0;z-index:25";
+            dom_player_toolbar.style = "z-index:30";
             let ret = localStorage.getItem("ExSave_FullScreen");
             if (ret != null) {
                 let retJson = JSON.parse(ret);
                 if (retJson.isFullScreen) {
-                    dom_player_toolbar.style.zIndex = "20";
+                    dom_player_toolbar.style = "z-index:20";
                 }
             }
             const isBeta = !!document.getElementsByClassName("live-next-body")[0];
-            if (isBeta) dom_player_toolbar.parentElement.style.zIndex = "20";
+            if (isBeta) dom_player_toolbar.parentElement.style = "z-index:20";
             if (dom_refresh3) {
                 dom_refresh3.style.opacity = "0";
                 dom_refresh3.style.transform = "scale(.9)";

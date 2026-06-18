@@ -3491,13 +3491,11 @@ function ExPanel_getGiftBarAnchor() {
 
 function ExPanel_isGiftBarHidden() {
     const row = document.getElementsByClassName("PlayerToolbar-ContentRow")[0];
-    const hidden = !!(row && "hidden" === row.style.visibility);
-    console.log("[ExPanel] isGiftBarHidden:", hidden, "| row exists:", !!row, "| style.visibility:", row && row.style.visibility);
-    return hidden;
+    return !!(row && "hidden" === row.style.visibility);
 }
 
 function ExPanel_getFloatingHost() {
-    return document.body;
+    return document.getElementById("js-player-dialog") || document.getElementsByClassName("room-Player-Box")[0] || document.body;
 }
 
 function ExPanel_saveAnchor(panel) {
@@ -3509,57 +3507,41 @@ function ExPanel_saveAnchor(panel) {
 
 function ExPanel_updateFloatingPosition() {
     const panel = document.querySelector(".ex-panel.ex-panel--floating");
-    console.log("[ExPanel] updateFloatingPosition | panel found:", !!panel);
     if (!panel) return;
     const playerToolbar = document.getElementById("js-player-toolbar");
     const vtoolbarMenu = document.getElementById("ex-vtoolbar-menu");
-    console.log("[ExPanel] updateFloatingPosition | playerToolbar:", !!playerToolbar, "| vtoolbarMenu:", !!vtoolbarMenu);
     const gap = 8;
     panel.style.position = "fixed";
     panel.style.top = "auto";
     if (vtoolbarMenu) {
         const menuRect = vtoolbarMenu.getBoundingClientRect();
-        console.log("[ExPanel] updateFloatingPosition | menuRect.top:", menuRect.top);
         panel.style.bottom = window.innerHeight - menuRect.top + gap + `px`;
-    } else if (playerToolbar) {
-        const toolbarRect = playerToolbar.getBoundingClientRect();
-        console.log("[ExPanel] updateFloatingPosition | toolbarRect.top:", toolbarRect.top);
-        panel.style.bottom = window.innerHeight - toolbarRect.top + gap + `px`;
-    } else {
-        console.log("[ExPanel] updateFloatingPosition | FALLBACK: bottom=72px right=12px");
-        panel.style.bottom = "72px";
-        panel.style.right = "12px";
-        panel.style.left = "";
-        return;
-    }
-    console.log("[ExPanel] updateFloatingPosition | innerHeight:", window.innerHeight, "| set bottom:", panel.style.bottom);
-    if (vtoolbarMenu) {
-        const menuRect = vtoolbarMenu.getBoundingClientRect();
         const panelWidth = panel.offsetWidth || panel.scrollWidth || 320;
         let left = menuRect.left + menuRect.width / 2 - panelWidth / 2;
         left = Math.max(8, Math.min(left, window.innerWidth - panelWidth - 8));
         panel.style.left = left + `px`;
         panel.style.right = "auto";
-        console.log("[ExPanel] updateFloatingPosition | vtoolbarMenu mode | left:", left, "| panelWidth:", panelWidth);
-    } else {
+    } else if (playerToolbar) {
         const toolbarRect = playerToolbar.getBoundingClientRect();
+        panel.style.bottom = window.innerHeight - toolbarRect.top + gap + `px`;
         const panelWidth = panel.offsetWidth || panel.scrollWidth || 320;
         let left = toolbarRect.left + toolbarRect.width / 2 - panelWidth / 2;
         left = Math.max(8, Math.min(left, window.innerWidth - panelWidth - 8));
         panel.style.left = left + `px`;
         panel.style.right = "auto";
-        console.log("[ExPanel] updateFloatingPosition | toolbar mode | left:", left, "| panelWidth:", panelWidth);
+    } else {
+        panel.style.bottom = "72px";
+        panel.style.right = "12px";
+        panel.style.left = "";
     }
 }
 
 function ExPanel_attachToFloatingHost() {
     const panel = document.querySelector(".ex-panel");
-    console.log("[ExPanel] attachToFloatingHost | panel:", !!panel, "| already floating:", panel && panel.classList.contains("ex-panel--floating"), "| display:", panel && panel.style.display);
     if (!panel || panel.classList.contains("ex-panel--floating")) {
         ExPanel_updateFloatingPosition();
         return;
     }
-    console.log("[ExPanel] attachToFloatingHost | moving panel to floating host");
     ExPanel_saveAnchor(panel);
     ExPanel_getFloatingHost().appendChild(panel);
     panel.classList.add("ex-panel--floating");
@@ -3572,12 +3554,6 @@ function ExPanel_restoreToGiftBar() {
     if (!panel || !anchor || !panel.classList.contains("ex-panel--floating")) return;
     if (ExPanel_anchorNextSibling && ExPanel_anchorNextSibling.parentNode === anchor) anchor.insertBefore(panel, ExPanel_anchorNextSibling); else anchor.insertBefore(panel, anchor.childNodes[0]);
     panel.classList.remove("ex-panel--floating");
-    panel.style.position = "";
-    panel.style.top = "";
-    panel.style.left = "";
-    panel.style.right = "";
-    const domPlayerToolbar = document.querySelector(".PlayerToolbar");
-    panel.style.bottom = domPlayerToolbar ? domPlayerToolbar.offsetHeight + "px" : "76px";
 }
 
 function ExPanel_syncHost() {
@@ -3628,9 +3604,7 @@ function autoCloseExPanelHandle() {
 function showExPanel() {
     let a = document.getElementsByClassName("ex-panel")[0];
     if (!a) return;
-    console.log("[ExPanel] showExPanel | current display:", a.style.display, "| is floating:", a.classList.contains("ex-panel--floating"), "| parent:", a.parentNode && (a.parentNode.id || a.parentNode.className));
     ExPanel_syncHost();
-    console.log("[ExPanel] showExPanel after syncHost | display:", a.style.display, "| is floating:", a.classList.contains("ex-panel--floating"), "| parent:", a.parentNode && (a.parentNode.id || a.parentNode.className));
     if ("block" !== a.style.display) {
         a.style.display = "block";
         clearTimeout(exPanelTimer);
@@ -7623,11 +7597,11 @@ function initPkg_Refresh_Video_Func() {
         if (document.querySelector(".wfs-2a8e83.removed-9d4c42")) video_fullPage = true; else if (document.querySelector(".toggle__P8TKM")) video_fullPage = true;
         if (document.querySelector(".shrink__Sd0uK")) chatPanel_isHidden = true;
         const dom_player_toolbar = document.getElementById("js-player-toolbar");
-        dom_player_toolbar.style.zIndex = video_fullPage ? "20" : "30";
+        dom_player_toolbar.style = video_fullPage ? "z-index:20" : "z-index:30";
         const dom_casebar = document.getElementsByClassName("case__f4yex")[0];
-        if (dom_casebar) dom_casebar.style.bottom = (video_fullScreen || video_fullPage && chatPanel_isHidden) && refresh_Video_getStatus() ? "-84px" : "0";
+        if (dom_casebar) dom_casebar.style = (video_fullScreen || video_fullPage && chatPanel_isHidden) && refresh_Video_getStatus() ? "bottom: -84px;" : "bottom: 0;";
         const isBeta = !!document.getElementsByClassName("live-next-body")[0];
-        if (isBeta) dom_player_toolbar.parentElement.style.zIndex = "20";
+        if (isBeta) dom_player_toolbar.parentElement.style = "z-index:20";
     }
     let dom = getValidDom([ ".layout-Player-video", ".stream__T55I3" ]);
     let dom_video = document.getElementsByClassName("room-Player-Box")[0];
@@ -7704,8 +7678,7 @@ function initPkg_Refresh_Video_Func() {
         } else {
             dom_toolbar.style.visibility = "hidden";
             if ("function" === typeof ExPanel_onGiftBarHide) ExPanel_onGiftBarHide();
-            dom_video.style.bottom = "0";
-            dom_video.style.zIndex = "25";
+            dom_video.style = "bottom:0;z-index:25";
             dom_refresh.innerText = "✓ 隐藏礼物栏";
             if (dom_refresh3) dom_refresh3.title = "点击显示礼物栏";
             updateRefreshSwitchUI(true);
@@ -7773,16 +7746,15 @@ function initPkg_Refresh_Video_Set() {
             let dom_refresh3 = document.getElementById("refresh-video3");
             let dom_player_toolbar = document.getElementById("js-player-toolbar");
             dom_toolbar.style.visibility = "hidden";
-            dom_video.style.bottom = "0";
-            dom_video.style.zIndex = "25";
-            dom_player_toolbar.style.zIndex = "30";
+            dom_video.style = "bottom:0;z-index:25";
+            dom_player_toolbar.style = "z-index:30";
             let ret = localStorage.getItem("ExSave_FullScreen");
             if (null != ret) {
                 let retJson = JSON.parse(ret);
-                if (retJson.isFullScreen) dom_player_toolbar.style.zIndex = "20";
+                if (retJson.isFullScreen) dom_player_toolbar.style = "z-index:20";
             }
             const isBeta = !!document.getElementsByClassName("live-next-body")[0];
-            if (isBeta) dom_player_toolbar.parentElement.style.zIndex = "20";
+            if (isBeta) dom_player_toolbar.parentElement.style = "z-index:20";
             if (dom_refresh3) {
                 dom_refresh3.style.opacity = "0";
                 dom_refresh3.style.transform = "scale(.9)";
