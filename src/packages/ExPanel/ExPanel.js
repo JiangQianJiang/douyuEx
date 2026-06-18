@@ -32,9 +32,9 @@ function ExPanel_isGiftBarHidden() {
 }
 
 function ExPanel_getFloatingHost() {
-    return document.getElementById("js-player-dialog")
-        || document.getElementsByClassName("room-Player-Box")[0]
-        || document.body;
+    // Use document.body to avoid CSS transform on player container
+    // breaking position:fixed (transform creates a new containing block)
+    return document.body;
 }
 
 function ExPanel_saveAnchor(panel) {
@@ -102,6 +102,13 @@ function ExPanel_restoreToGiftBar() {
         anchor.insertBefore(panel, anchor.childNodes[0]);
     }
     panel.classList.remove("ex-panel--floating");
+    // Reset floating inline styles, restore gift-bar positioning
+    panel.style.position = "";
+    panel.style.top = "";
+    panel.style.left = "";
+    panel.style.right = "";
+    const domPlayerToolbar = document.querySelector(".PlayerToolbar");
+    panel.style.bottom = domPlayerToolbar ? domPlayerToolbar.offsetHeight + "px" : "76px";
 }
 
 function ExPanel_syncHost() {
